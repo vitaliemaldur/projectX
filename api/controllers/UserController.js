@@ -15,18 +15,54 @@
  * @docs        :: http://sailsjs.org/#!documentation/controllers
  */
 
+var bcrypt = require('bcrypt');
+
 module.exports = {
-    
-  
-
-
   /**
    * Overrides for the settings in `config/controllers.js`
    * (specific to UserController)
    */
-    
   index: function(req, res) {
-    return res.view();
+    res.view();
+  }, 
+  
+  login: function(req, res) {
+    var email    = req.param('email');
+    var password = req.param('password');
+    
+    User.findOne({'email': email}).done(function(err, user) {
+      //TODO handle errors 
+      if(err) {
+        console.log(err);
+      } else {
+        console.log(user);
+        bcrypt.compare(password, user.password, function(err, flag) {
+          //TODO handle errors
+          if(err) {
+            console.log(err);
+          } else {
+            if(flag) {
+              res.redirect('/user/index');
+            } else {
+              res.redirect('/');
+            }
+          }
+        });
+      }
+    });  
+  },
+  
+  create: function(req, res) {
+    var username  = req.param('username');
+    var email     = req.param('email');
+    var password  = req.param('password');
+    var pass_conf = req.param('password_conf');
+    
+    User.create(req.body).done(function(err, user) {
+      //TODO handle errors
+      if(err) console.log(err);
+      else console.log(user);
+    });
   }
   
 };
