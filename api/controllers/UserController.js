@@ -29,7 +29,7 @@ module.exports = {
   login: function(req, res) {
     var email    = req.param('email');
     var password = req.param('password');
-    
+
     User.findOne({'email': email}).done(function(err, user) {
       //TODO handle errors 
       if(err) {
@@ -42,6 +42,7 @@ module.exports = {
             console.log(err);
           } else {
             if(flag) {
+              req.session.authenticated = true;
               res.redirect('/user/index');
             } else {
               res.redirect('/');
@@ -51,6 +52,11 @@ module.exports = {
       }
     });  
   },
+
+	logout: function(req, res) {
+		req.session.authenticated = false;
+		res.redirect('/');
+	},
   
   create: function(req, res) {
     var username  = req.param('username');
@@ -60,8 +66,12 @@ module.exports = {
     
     User.create(req.body).done(function(err, user) {
       //TODO handle errors
-      if(err) console.log(err);
-      else console.log(user);
+      if(err) {
+				console.log(err);
+			} else {
+				req.session.authenticated = true;
+				res.redirect('user/index');
+			}
     });
   }
   

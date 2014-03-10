@@ -37,7 +37,7 @@
   </head>
 
   <body>
-    <nav class="navbar navbar-default" role="navigation">
+    <nav class="navbar navbar-inverse" role="navigation">
       <div class="container-fluid">
         <!-- Brand and toggle get grouped for better mobile display -->
         <div class="navbar-header">
@@ -52,6 +52,15 @@
 
         <!-- navbar -->
         <div class="collapse navbar-collapse">
+					<% if(req.session.authenticated)  { %>
+						<ul class="nav navbar-nav">
+							<li><a href="#">Current Games</a></li>
+        			<li><a href="#">My Profile</a></li>
+							<li><a href="#">History</a></li>
+							<li><a href="#">Ratings</a></li>
+						</ul>
+						<a href="/user/logout" class="navbar-link navbar-right navbar-text">Logout</a>
+					<% } %>
         </div><!-- /.navbar-collapse -->
       </div><!-- /.container-fluid -->
     </nav>
