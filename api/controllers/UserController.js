@@ -32,14 +32,16 @@ module.exports = {
 
     User.findOne({'email': email}).done(function(err, user) {
       //TODO handle errors 
-      if(err) {
-        console.log(err);
+      if(err || !user) {
+				console.log("Userul nu este gasit sau este o eroare de logare");
+        res.redirect('/');
       } else {
         console.log(user);
         bcrypt.compare(password, user.password, function(err, flag) {
           //TODO handle errors
           if(err) {
-            console.log(err);
+						console.log("Userul nu este gasit sau este o eroare de logare");
+            res.redirect('/');
           } else {
             if(flag) {
               req.session.authenticated = true;
@@ -64,15 +66,21 @@ module.exports = {
     var password  = req.param('password');
     var pass_conf = req.param('password_conf');
     
-    User.create(req.body).done(function(err, user) {
-      //TODO handle errors
-      if(err) {
-				console.log(err);
-			} else {
-				req.session.authenticated = true;
-				res.redirect('user/index');
-			}
-    });
+		if(pass_conf !== password) {
+			console.log("Parola si confirmarea parolei nu sunt la fel");
+			res.redirect('/');
+		} else {
+			User.create(req.body).done(function(err, user) {
+				//TODO handle errors
+				if(err) {
+					console.log("Utilizator existent sau eroare de creare cont");
+					res.redirect('/');
+				} else {
+					req.session.authenticated = true;
+					res.redirect('user/index');
+				}
+			});
+		}
   }
   
 };

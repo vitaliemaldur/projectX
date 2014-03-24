@@ -40,11 +40,25 @@ module.exports = {
   
   beforeCreate: function(values, next) {
     delete values.password_conf;
-    bcrypt.hash(values.password, 10, function(err, hash) {
-      if(err) return next(err);
-      values.password = hash;
-      next();
-    });
+
+		User.findOne({'email': values.email}).done(function(err, user) {
+			if(err) {
+				return next(err);
+			} else {
+				if(!user) { // Utilizator nu exista
+					  bcrypt.hash(values.password, 10, function(err, hash) {
+							if(err)
+								return next(err);
+
+							values.password = hash;
+							next();
+						});
+				} else { // Utilizator existent
+					return next(new Error())
+				}
+			}
+
+		});
   }
 
 };
