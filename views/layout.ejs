@@ -47,19 +47,21 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">Belote Monster</a>
+          <a class="navbar-brand" href="/user/index">Belote Monster</a>
         </div>
 
         <!-- navbar -->
         <div class="collapse navbar-collapse">
 					<% if(req.session.authenticated)  { %>
 						<ul class="nav navbar-nav">
-							<li><a href="#">Current Games</a></li>
+							<li><a href="/user/index">Current Games</a></li>
         			<li><a href="#">My Profile</a></li>
 							<li><a href="#">History</a></li>
 							<li><a href="#">Ratings</a></li>
 						</ul>
-						<a href="/user/logout" class="navbar-link navbar-right navbar-text">Logout</a>
+						<a href="/user/logout" class="navbar-link navbar-right navbar-text">
+							<span class="glyphicon glyphicon-log-out"></span>
+						</a>
 					<% } %>
         </div><!-- /.navbar-collapse -->
       </div><!-- /.container-fluid -->

@@ -45,6 +45,7 @@ module.exports = {
           } else {
             if(flag) {
               req.session.authenticated = true;
+							req.session.username      = user.username;
               res.redirect('/user/index');
             } else {
               res.redirect('/');
@@ -76,7 +77,7 @@ module.exports = {
 					console.log("Utilizator existent sau eroare de creare cont");
 					res.redirect('/');
 				} else {
-					req.session.authenticated = true;
+					req.session = {}; // TODO change thiss
 					res.redirect('user/index');
 				}
 			});
