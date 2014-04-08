@@ -16,15 +16,24 @@
  */
 
 module.exports = {
-    
-  
 
+	index: function(req, res) {
+    res.view();
+  },
 
-  /**
-   * Overrides for the settings in `config/controllers.js`
-   * (specific to GameController)
-   */
-  _config: {}
-
+	create: function(req, res) {
+		req.body['nr_players'] = 1;
+		console.log(req.body);
+		Game.create(req.body).done(function(err, game) {
+			//TODO handle errors
+			if(err) {
+				console.log("Joc existent sau eroare de creare joc");
+				console.log(err);
+				res.redirect('/user/index');
+			} else {
+				res.redirect('/game/index');
+			}
+		});
+	}
   
 };

@@ -13,11 +13,7 @@ module.exports = {
   schema: true,
   
   attributes: {
-  	
-  	/* e.g.
-  	nickname: 'string'
-  	*/
-    
+
     username: {
       type: 'string',
       minLength: 3,
@@ -54,7 +50,7 @@ module.exports = {
 							next();
 						});
 				} else { // Utilizator existent
-					return next(new Error())
+					return next(new Error());
 				}
 			}
 

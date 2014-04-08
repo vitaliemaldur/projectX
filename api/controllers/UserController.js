@@ -23,7 +23,15 @@ module.exports = {
    * (specific to UserController)
    */
   index: function(req, res) {
-    res.view();
+		Game.find().done(function(err, games) {
+			if(err) {
+				console.log("Eroare la initializarea tabelei de jocuri");
+			} else {
+				var obj = {games: games};
+				console.log(obj);
+				return res.view({games: games});
+			}
+		});
   }, 
   
   login: function(req, res) {
@@ -36,7 +44,6 @@ module.exports = {
 				console.log("Userul nu este gasit sau este o eroare de logare");
         res.redirect('/');
       } else {
-        console.log(user);
         bcrypt.compare(password, user.password, function(err, flag) {
           //TODO handle errors
           if(err) {
@@ -62,12 +69,9 @@ module.exports = {
 	},
   
   create: function(req, res) {
-    var username  = req.param('username');
-    var email     = req.param('email');
-    var password  = req.param('password');
     var pass_conf = req.param('password_conf');
     
-		if(pass_conf !== password) {
+		if(pass_conf !== req.body.password) {
 			console.log("Parola si confirmarea parolei nu sunt la fel");
 			res.redirect('/');
 		} else {
@@ -77,7 +81,8 @@ module.exports = {
 					console.log("Utilizator existent sau eroare de creare cont");
 					res.redirect('/');
 				} else {
-					req.session = {}; // TODO change thiss
+					req.session.authenticated = true;
+					req.session.username      = user.username;
 					res.redirect('user/index');
 				}
 			});
