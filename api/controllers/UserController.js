@@ -28,7 +28,6 @@ module.exports = {
 				console.log("Eroare la initializarea tabelei de jocuri");
 			} else {
 				var obj = {games: games};
-				console.log(obj);
 				return res.view({games: games});
 			}
 		});

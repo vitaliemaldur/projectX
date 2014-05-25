@@ -61,7 +61,7 @@ module.exports.routes = {
     action: 'index'
   },
 
-  'get /game/enter/:id?' : {
+  '/game/enter' : {
     controller: 'GameController',
     action: 'enter'
   },

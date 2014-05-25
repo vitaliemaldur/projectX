@@ -19,27 +19,26 @@ module.exports = {
 
 	index: function(req, res) {
     var game_id = req.params['id'];
-    console.log(game_id);
     res.view();
   },
 
 	create: function(req, res) {
 		req.body['nr_players'] = 1;
-		Game.create(req.body).done(function(err, game) {
+    Game.create(req.body).done(function(err, game) {
 			//TODO handle errors
 			if(err) {
 				console.log("Joc existent sau eroare de creare joc");
-				console.log(err);
 				res.redirect('/user/index');
+        res.json({redirect: '/user/index'});
 			} else {
-				res.redirect('/game/' + game.id);
+        req.socket.join("" + game.id);
+				res.json({redirect: '/game/' + game.id});
 			}
 		});
 	},
 
   enter: function(req, res) {
-    console.log("enter");
-    var game_id = req.params['id'];
+    var game_id = req.body['game'];
     Game.findOne(game_id).done(function(err, game) {
       if(err) {
         console.log("Joc innexistent");
@@ -51,10 +50,11 @@ module.exports = {
               console.log("Salvare nereusita");
             }
           });
-          res.redirect('/game/' + game.id);
+          req.socket.join("" + game.id);
         }
       }
     });
+    res.json();
   },
   
 };

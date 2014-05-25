@@ -26,7 +26,7 @@
 	</div>
   <div class="col-lg-offset-1 col-lg-3">
 		<h3>New game</h3>
-		<form role="form" action="/game/create" method="POST">
+		<form role="form" id="new_game">
 			<div class="form-group">
 				<label>Name</label>
 				<input type="text" class="form-control" name="name">
@@ -42,10 +42,19 @@
 			</form>
 	</div>
   <script>
+    $("#new_game").submit(function(event) {
+      var name = $('input[name=name]').val();
+      var nr   = $('select[name=total_players]').val();
+      console.log(name + " " + nr);
+      socket.post("/game/create", {name: name, total_players: nr}, function(response) {
+        window.location = response['redirect'];
+      });
+    });
+
     var rows = $(".glyphicon-ok-circle").parent().parent();
     rows.click(function() {
       var id = parseInt($(this).children().first().text());
-      $.get("/game/enter/" + id, function() {
+      socket.post("/game/enter", {game: id}, function(response) {
         window.location = "/game/" + id;
       });
     });
