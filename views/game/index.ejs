@@ -11,10 +11,80 @@
 </div>
 -->
 <div class="row">
-  <div class="col-lg-6">
-    <canvas style="width: 100%; height: 600px">
-    </canvas>
+  <div class="col-lg-8" id="game-room">
+    <div class="row" id="north">
+      <div class="col-lg-3" id="north-west">
+        <img class="pull-left img-responsive player" src="/linker/images/player.png"/>
+      </div>
+      <div class="col-lg-6" id="north-center">
+        <img class="img-responsive player" src="/linker/images/player.png"/>
+      </div>
+      <div class="col-lg-3" id="north-east">
+        <img class="pull-right img-responsive player" src="/linker/images/player.png"/>
+      </div>
+    </div>
+    <div class="row" id="center">
+      <div class="col-lg-3" id="center-west">
+      </div>
+      <div class="col-lg-6" id="game-table">
+<!--
+        <img class="img-responsive card" src="/linker/images/C7.png"/>
+        <img class="img-responsive card" src="/linker/images/HK.png"/>
+        <img class="img-responsive card" src="/linker/images/H8.png"/>
+-->
+        <div class="btn-group btn-group-lg">
+          <button type="button" class="btn btn-default">
+            <span class="card-type" style="color:black">♣</span>
+          </button>
+          <button type="button" class="btn btn-default">
+            <span class="card-type" style="color:red">♦</span>
+          </button>
+          <button type="button" class="btn btn-default">
+            <span class="card-type" style="color:red">♥</span>
+          </button>
+          <button type="button" class="btn btn-default">
+            <span class="card-type" style="color:black">♠</span>
+          </button>
+        </div>
+      </div>
+      <div class="col-lg-3" id="center-east">
+      </div>
+    </div>
+    <div class="row" id="south">
+      <div id="player_cards" class="col-lg-8 col-lg-offset-2">
+        <img class="img-responsive card" src="/linker/images/C7.png"/>
+        <img class="img-responsive card" src="/linker/images/HK.png"/>
+        <img class="img-responsive card" src="/linker/images/H8.png"/>
+        <img class="img-responsive card" src="/linker/images/H9.png"/>
+        <img class="img-responsive card" src="/linker/images/D10.png"/>
+        <img class="img-responsive card" src="/linker/images/C9.png"/>
+        <img class="img-responsive card" src="/linker/images/CQ.png"/>
+        <img class="img-responsive card" src="/linker/images/DA.png"/>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <!--    Score board and chat -->
   </div>
 </div>
 <script>
+  function stack_cards(id_container) {
+    var count  = $(id_container).children().length;
+    var width  = $(id_container).width();
+    var height = $(id_container).height();
+    var card_width = $(id_container).children().first().width();
+    var all_cards_width = card_width + ((count - 1) * card_width / 2);
+    var offset = (width - all_cards_width) / 2;
+    var array_img = $(id_container).children();
+    $(id_container).children().first().css("margin-left", offset);
+    for(var i = 1; i < count; i++) {
+      var img = array_img[i];
+      $(img).css("margin-left", -1 * card_width / 2);
+    }
+  }
+
+  $(window).load(function() {
+    stack_cards("#player_cards");
+    stack_cards("#game-table");
+  });
 </script>

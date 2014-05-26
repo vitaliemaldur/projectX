@@ -1,0 +1,44 @@
+.card-type {
+  font-size: 46px;
+}
+
+.card {
+  float: left;
+  height: 100%;
+}
+
+.player {
+  height: 100%;
+  padding-top: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+#game-room {
+  background-color: #024A70;
+  height: 540px;
+  margin-left: 20px;
+  margin-top: -10px;
+}
+
+#north-west, #north-east, #north-center, #center-east, #center-west{
+  height: 100%;
+}
+
+#north {
+  height: 20%;
+}
+
+#south {
+  height: 30%;
+}
+
+#center {
+  height: 50%;
+}
+
+#game-table {
+  padding-top: 50px;
+}
