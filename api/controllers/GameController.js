@@ -73,8 +73,8 @@ module.exports = {
               }
             });
             req.socket.join("room" + game.id);
-            req.socket.broadcast.to("room" + game.id).emit('update', {thisIs: 'theMessage'});
-            res.json(game.toJSON());
+            req.socket.broadcast.to("room" + game.id).emit('update', {game: game.toJSON(), gameInstance: game_ins.toJSON()});
+            res.json(game_ins.toJSON());
           }
         });
       }
