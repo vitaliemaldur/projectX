@@ -31,7 +31,6 @@ module.exports = {
 
 	//TODO testare jocuri cu acelasi nume
 	beforeCreate: function(values, next) {
-		values['nr_players'] = 1;
 		next();
 	}
 

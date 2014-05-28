@@ -52,6 +52,7 @@ module.exports = {
             if(flag) {
               req.session.authenticated = true;
 							req.session.username      = user.username;
+              req.session.userid        = user.id;
               res.redirect('/user/index');
             } else {
               res.redirect('/');
@@ -82,6 +83,7 @@ module.exports = {
 				} else {
 					req.session.authenticated = true;
 					req.session.username      = user.username;
+          req.session.userid        = user.id;
 					res.redirect('user/index');
 				}
 			});

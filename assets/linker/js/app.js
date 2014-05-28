@@ -31,6 +31,18 @@
 
     });
 
+    socket.on('update', function messageReceived(message) {
+
+      ///////////////////////////////////////////////////////////
+      // Replace the following with your own custom logic
+      // to run when a new message arrives from the Sails.js
+      // server.
+      ///////////////////////////////////////////////////////////
+      log('New comet message received :: ', message);
+      //////////////////////////////////////////////////////
+
+    });
+
 
     ///////////////////////////////////////////////////////////
     // Here's where you'll want to add any custom logic for
