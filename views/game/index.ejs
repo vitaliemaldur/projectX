@@ -27,11 +27,7 @@
       <div class="col-lg-3" id="center-west">
       </div>
       <div class="col-lg-6" id="game-table">
-<!-- carti
-        <img class="img-responsive card" src="/linker/images/C7.png"/>
-        <img class="img-responsive card" src="/linker/images/HK.png"/>
-        <img class="img-responsive card" src="/linker/images/H8.png"/>
--->
+<!-- carti sau tip -->
 <!-- alege tip
         <div class="btn-group btn-group-lg">
           <button type="button" class="btn btn-default">
@@ -66,16 +62,7 @@
     </div>
     <div class="row" id="south">
       <div id="player_cards" class="col-lg-8 col-lg-offset-2">
-<!--
-        <img class="img-responsive card" src="/linker/images/C7.png"/>
-        <img class="img-responsive card" src="/linker/images/HK.png"/>
-        <img class="img-responsive card" src="/linker/images/H8.png"/>
-        <img class="img-responsive card" src="/linker/images/H9.png"/>
-        <img class="img-responsive card" src="/linker/images/D10.png"/>
-        <img class="img-responsive card" src="/linker/images/C9.png"/>
-        <img class="img-responsive card" src="/linker/images/CQ.png"/>
-        <img class="img-responsive card" src="/linker/images/DA.png"/>
--->
+        <!-- Cards -->
       </div>
     </div>
   </div>
@@ -97,6 +84,7 @@
 </div>
 <script>
   function stack_cards(id_container) {
+    console.log("stack");
     var count  = $(id_container).children().length;
     var width  = $(id_container).width();
     var height = $(id_container).height();
@@ -114,6 +102,7 @@
   $(window).load(function() {
     var url = window.location.href.split("/");
     var id = parseInt(url[url.length - 1]);
+    var user_id = 0;
 
     function updateScoreBoardNames(game_ins) {
       for(var i = 0; i < game_ins.users_names.length; i++) {
@@ -124,10 +113,31 @@
     socket.post("/game/enter", {game: id}, function(data) {
       var game_ins = data;
       updateScoreBoardNames(game_ins);
+      user_id = game_ins.users_ids[game_ins.users_ids.length - 1];
+    });
+
+    socket.on("begin", function(data) {
+      if(user_id == 0)
+        user_id = data.users_ids[data.users_ids.length - 1];
+
+      var index = data.users_ids.indexOf(user_id);
+      var cards = data.users_cards[index];
+      for(var i = 0; i < cards.length; i++) {
+        var img = $('<img>', {class: "img-responsive card", src: "/linker/images/" + cards[i] + ".png"});
+        img.load(function() {
+          stack_cards("#player_cards");
+        });
+        $("#player_cards").append(img);
+      }
+
+      var trump = $('<img>', {class: "img-responsive card", src: "/linker/images/" + data.trump + ".png"});
+      var deck  = $('<img>', {class: "img-responsive card", src: "/linker/images/back.jpg"});
+      trump.load(function() {stack_cards("#game-table");});
+      deck.load(function() {stack_cards("#game-table");});
+      $("#game-table").append(trump).append(deck);
     });
 
     socket.on("update", function(data) {
-      console.log(data);
       var game = data.game;
       var game_ins = data.gameInstance;
 

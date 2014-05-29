@@ -38,7 +38,21 @@ module.exports = {
 				console.log("Joc existent sau eroare de creare joc");
 				res.redirect('/user/index');
 			} else {
-        GameInstance.create({id_owner: req.session.userid, id_game: game.id, users_ids: [], users_names: []})
+        var card = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        var type = ['C', 'D', 'H', 'S'];
+        var index = 0;
+        var deck = [];
+
+        if(game.total_players == 3)
+          index = 2;
+
+        for(var i = index; i < card.length; i++)
+          for(var j = 0; j < type.length; j++)
+            deck.push(type[j] + card[i]);
+        deck.sort(function() {return 0.5 - Math.random()});
+
+        GameInstance.create({id_owner: req.session.userid, id_game: game.id, users_ids: [], users_names: [],
+                            deck: deck, users_cards: []})
         .done(function(err, game_ins) {
           if(err) {
             console.log("Joc existent sau eroare de creare instanta joc");
@@ -75,6 +89,22 @@ module.exports = {
             req.socket.join("room" + game.id);
             req.socket.broadcast.to("room" + game.id).emit('update', {game: game.toJSON(), gameInstance: game_ins.toJSON()});
             res.json(game_ins.toJSON());
+            if(game.total_players == game.nr_players) {//game begin
+              for(var i = 0; i < game.total_players; i++) {
+                var cards = [];
+                for(var j = 0; j < 5; j++) {
+                  cards.push(game_ins.deck.pop());
+                }
+                game_ins.users_cards.push(cards);
+              }
+              game_ins.trump = game_ins.deck[Math.floor(Math.random() * game_ins.deck.length)];
+              game_ins.save(function(err) {
+                if(err) {
+                  console.log("Salvare nereusita a instantei la initializare joc!");
+                }
+              });
+              sails.io.sockets.in('room' + game.id).emit('begin', game_ins.toJSON());
+            }
           }
         });
       }

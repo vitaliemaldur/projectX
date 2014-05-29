@@ -26,7 +26,19 @@ module.exports = {
 
     users_names: {
       type: 'array',
-    }
+    },
+
+    deck: {
+      type: 'array',
+    },
+
+    trump: {
+      type: 'string',
+    },
+
+    users_cards: {
+      type: 'array',
+    },
 
   }
 
