@@ -1,5 +1,10 @@
+
+#clubs, #diamonds, #hearts, #spades {
+  width: 33.33%;
+}
+
 .card-type {
-  font-size: 46px;
+  font-size: 30px;
 }
 
 .card {

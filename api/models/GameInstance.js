@@ -20,6 +20,10 @@ module.exports = {
       required: true
     },
 
+    dealer: {
+      type: 'integer',
+    },
+
     users_ids: {
       type: 'array',
     },
@@ -38,6 +42,10 @@ module.exports = {
 
     users_cards: {
       type: 'array',
+    },
+
+    active_id: {
+      type: 'integer'
     },
 
   }

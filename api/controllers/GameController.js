@@ -1,20 +1,3 @@
-/**
- * GameController
- *
- * @module      :: Controller
- * @description	:: A set of functions called `actions`.
- *
- *                 Actions contain code telling Sails how to respond to a certain type of request.
- *                 (i.e. do stuff, then send some JSON, show an HTML page, or redirect to another URL)
- *
- *                 You can configure the blueprint URLs which trigger these actions (`config/controllers.js`)
- *                 and/or override them with custom routes (`config/routes.js`)
- *
- *                 NOTE: The code you write here supports both HTTP and Socket.io automatically.
- *
- * @docs        :: http://sailsjs.org/#!documentation/controllers
- */
-
 module.exports = {
 
 	index: function(req, res) {
@@ -52,7 +35,7 @@ module.exports = {
         deck.sort(function() {return 0.5 - Math.random()});
 
         GameInstance.create({id_owner: req.session.userid, id_game: game.id, users_ids: [], users_names: [],
-                            deck: deck, users_cards: []})
+                            deck: deck, users_cards: [], dealer: req.session.userid})
         .done(function(err, game_ins) {
           if(err) {
             console.log("Joc existent sau eroare de creare instanta joc");
@@ -104,6 +87,7 @@ module.exports = {
                 }
               });
               sails.io.sockets.in('room' + game.id).emit('begin', game_ins.toJSON());
+              sails.io.sockets.in('room' + game.id).emit('round1', {gameInstance: game_ins.toJSON(), userid: game_ins.users_ids[1]});
             }
           }
         });
@@ -111,4 +95,81 @@ module.exports = {
     });
   },
   
+  round1: function(req, res) {
+    var game_id = req.body['game'];
+    var user_id = req.body['user'];
+    var action  = req.body['action'];
+    GameInstance.findOne({id_game: game_id}, function(err, game_ins) {
+      if(err) {
+        console.log("Instanta jocului nu a fost gasita!");
+      } else {
+        var index = game_ins.users_ids.indexOf(user_id);
+        if(action == "play") {
+          game_ins.active_id = user_id;
+          game_ins.deck.splice(game_ins.deck.indexOf(game_ins.trump), 1);
+          game_ins.users_cards[index].push(game_ins.trump);
+          for(var i = 0; i < game_ins.users_ids.length; i++) {
+            var nr_cards = 3;
+
+            if(index == i)
+              nr_cards = 2;
+
+            for(var j = 0; j < nr_cards; j++) {
+              if(game_ins.users_ids[i] != game_ins.dealer) {
+                game_ins.users_cards[i].push(game_ins.deck.pop());
+              }
+            }
+          }
+
+          var dealer_index = game_ins.users_ids.indexOf(game_ins.dealer);
+          while(game_ins.deck.length > 0) {
+            game_ins.users_cards[dealer_index].push(game_ins.deck.pop());
+          }
+
+          game_ins.save(function(err) {
+            if(err) {
+              console.log("Salvare instanta nereusita");
+            }
+          });
+          sails.io.sockets.in('room' + game_ins.id_game)
+          .emit('allcards', game_ins.toJSON());
+        } else {
+          if(index == game_ins.users_ids.indexOf(game_ins.dealer)) {//round2
+            sails.io.sockets.in('room' + game_ins.id_game)
+            .emit('round2', {gameInstance: game_ins.toJSON(),
+                             userid: game_ins.users_ids[(index + 1) % game_ins.users_ids.length],
+                            play: false});
+          } else {//continue round1
+            index = (index + 1) % game_ins.users_ids.length;
+            sails.io.sockets.in('room' + game_ins.id_game)
+            .emit('round1', {gameInstance: game_ins.toJSON(), userid: game_ins.users_ids[index]});
+          }
+        }
+        res.json();
+      }
+    });
+  },
+
+  round2: function(req, res) {
+    GameInstance.findOne({id_game: req.body['game']}, function(err, game_ins) {
+      if(err) {
+        console.log("Instanta jocului nu a fost gasita!");
+      } else {
+        var index = game_ins.users_ids.indexOf(req.body['user']);
+        if(req.body['action'] == "play") {
+          //begin game
+        } else {
+          index = (index + 1) % game_ins.users_ids.length;
+          if(index == game_ins.users_ids.indexOf(game_ins.dealer)) {
+            sails.io.sockets.in('room' + game_ins.id_game)
+            .emit('round2', {gameInstance: game_ins.toJSON(), userid: game_ins.users_ids[index], play: true});
+          } else {
+            sails.io.sockets.in('room' + game_ins.id_game)
+            .emit('round2', {gameInstance: game_ins.toJSON(), userid: game_ins.users_ids[index], play: false});
+          }
+        }
+      }
+    });
+  },
+
 };

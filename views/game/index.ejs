@@ -27,23 +27,7 @@
       <div class="col-lg-3" id="center-west">
       </div>
       <div class="col-lg-6" id="game-table">
-<!-- carti sau tip -->
-<!-- alege tip
-        <div class="btn-group btn-group-lg">
-          <button type="button" class="btn btn-default">
-            <span class="card-type" style="color:black">♣</span>
-          </button>
-          <button type="button" class="btn btn-default">
-            <span class="card-type" style="color:red">♦</span>
-          </button>
-          <button type="button" class="btn btn-default">
-            <span class="card-type" style="color:red">♥</span>
-          </button>
-          <button type="button" class="btn btn-default">
-            <span class="card-type" style="color:black">♠</span>
-          </button>
-        </div>
--->
+<!-- carti -->
         <% if(game.total_players != game.nr_players) { %>
           <div class="row" id="loading">
             <div class="col-lg-offset-1 col-lg-10">
@@ -63,6 +47,12 @@
     <div class="row" id="south">
       <div id="player_cards" class="col-lg-8 col-lg-offset-2">
         <!-- Cards -->
+      </div>
+      <div class="col-lg-2" id="first-round-btns" style="visibility: hidden">
+        <button type="button" id="play-btn" class="btn btn-default btn-lg btn-block">Play</button>
+        <button type="button" id="pass-btn" class="btn btn-default btn-lg btn-block">Pass</button>
+        <div id="round2-chooser" class="btn-group btn-group-xs btn-block">
+        </div>
       </div>
     </div>
   </div>
@@ -84,7 +74,6 @@
 </div>
 <script>
   function stack_cards(id_container) {
-    console.log("stack");
     var count  = $(id_container).children().length;
     var width  = $(id_container).width();
     var height = $(id_container).height();
@@ -99,10 +88,88 @@
     }
   }
 
+
   $(window).load(function() {
     var url = window.location.href.split("/");
     var id = parseInt(url[url.length - 1]);
     var user_id = 0;
+
+    function display_buttons(first_char, play) {
+      $('#play-btn').hide();
+
+      $("#pass-btn").click(function() {
+        console.log("da");
+        socket.post("/game/round2", {game: id, user: user_id, action: "pass"}, function(data) {
+          //if is passing
+        });
+        $('#play-btn').show();
+        $("#round2-chooser").empty();
+        $('#first-round-btns').css("visibility", "hidden");
+      });
+
+      if(play) {
+        $("#pass-btn").hide();
+      }
+
+      var div = $("#round2-chooser");
+      if(first_char != 'S')
+        div.append('<button id="spades" type="button"  class="btn btn-default">' +
+                   '<span class="card-type" style="color:black">♠</span></button>');
+      if(first_char != 'H')
+        div.append('<button id="hearts" type="button" class="btn btn-default">' +
+              '<span class="card-type" style="color:red">♥</span></button>');
+      if(first_char != 'C')
+        div.append('<button id="clubs" type="button" class="btn btn-default">' +
+              '<span class="card-type" style="color:black">♣</span></button>');
+      if(first_char != 'D')
+        div.append('<button id="diamonds" type="button" class="btn btn-default">' +
+              '<span class="card-type" style="color:red">♦</span></button>');
+
+      div.ready(function() {
+        $("#clubs").click(function() {
+          socket.post("/game/round2", {game: id, user: user_id, action: "play", trump: "C"}, function(data) {
+          //if is playing
+          });
+          $('#play-btn').show();
+          $("#round2-chooser").empty();
+          $('#first-round-btns').css('visibility', 'hidden');
+          if(play) $("#pass-btn").show();
+        });
+
+        $("#spades").click(function() {
+          socket.post("/game/round2", {game: id, user: user_id, action: "play", trump: "S"}, function(data) {
+          //if is playing
+          });
+          $('#play-btn').show();
+          $("#round2-chooser").empty();
+          $('#first-round-btns').css('visibility', 'hidden');
+          if(play) $("#pass-btn").show();
+        });
+
+        $("#hearts").click(function() {
+          socket.post("/game/round2", {game: id, user: user_id, action: "play", trump: "H"}, function(data) {
+          //if is playing
+          });
+          $('#play-btn').show();
+          $("#round2-chooser").empty();
+          $('#first-round-btns').css('visibility', 'hidden');
+          if(play) $("#pass-btn").show();
+        });
+
+        $("#diamods").click(function() {
+          socket.post("/game/round2", {game: id, user: user_id, action: "play", trump: "D"}, function(data) {
+          //if is playing
+          });
+          $('#play-btn').show();
+          $("#round2-chooser").empty();
+          $('#first-round-btns').css('visibility', 'hidden');
+          if(play) $("#pass-btn").show();
+        });
+
+        $('#first-round-btns').css('visibility', 'visible');
+
+      });
+    }
 
     function updateScoreBoardNames(game_ins) {
       for(var i = 0; i < game_ins.users_names.length; i++) {
@@ -110,10 +177,54 @@
       }
     }
 
+    $("#play-btn").click(function() {
+      socket.post("/game/round1", {game: id, user: user_id, action: "play"}, function(data) {
+        //if is playing
+      });
+      $('#first-round-btns').css("visibility", "hidden");
+    });
+
     socket.post("/game/enter", {game: id}, function(data) {
       var game_ins = data;
       updateScoreBoardNames(game_ins);
       user_id = game_ins.users_ids[game_ins.users_ids.length - 1];
+    });
+
+    socket.on("round2", function(data) {
+      //$("#game-table").empty();
+      if(user_id == data.userid) {
+        console.log(data);
+        display_buttons(data.gameInstance.trump.charAt(0), data.play);
+      } else {
+        //Show message that user is choosing
+      }
+    });
+
+    socket.on("round1", function(data) {
+      if(user_id == data.userid) {
+        $('#first-round-btns').css("visibility", "visible");
+        $("#pass-btn").click(function() {
+          socket.post("/game/round1", {game: id, user: user_id, action: "pass"}, function(data) {
+            //if is passing
+          });
+          $('#first-round-btns').css("visibility", "hidden");
+        });
+      } else {
+        //Show message that user is choosing
+      }
+    });
+
+    socket.on("allcards", function(data) {
+      $("#game-table").empty();
+      var index = data.users_ids.indexOf(user_id);
+      var cards = data.users_cards[index];
+      for(var i = 5; i < cards.length; i++) {
+        var img = $('<img>', {class: "img-responsive card", src: "/linker/images/" + cards[i] + ".png"});
+        img.load(function() {
+          stack_cards("#player_cards");
+        });
+        $("#player_cards").append(img);
+      }
     });
 
     socket.on("begin", function(data) {
