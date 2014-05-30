@@ -73,109 +73,10 @@
   </div>
 </div>
 <script>
-  function stack_cards(id_container) {
-    var count  = $(id_container).children().length;
-    var width  = $(id_container).width();
-    var height = $(id_container).height();
-    var card_width = $(id_container).children().first().width();
-    var all_cards_width = card_width + ((count - 1) * card_width / 2);
-    var offset = (width - all_cards_width) / 2;
-    var array_img = $(id_container).children();
-    $(id_container).children().first().css("margin-left", offset);
-    for(var i = 1; i < count; i++) {
-      var img = array_img[i];
-      $(img).css("margin-left", -1 * card_width / 2);
-    }
-  }
-
-
   $(window).load(function() {
     var url = window.location.href.split("/");
     var id = parseInt(url[url.length - 1]);
     var user_id = 0;
-
-    function display_buttons(first_char, play) {
-      $('#play-btn').hide();
-
-      $("#pass-btn").click(function() {
-        console.log("da");
-        socket.post("/game/round2", {game: id, user: user_id, action: "pass"}, function(data) {
-          //if is passing
-        });
-        $('#play-btn').show();
-        $("#round2-chooser").empty();
-        $('#first-round-btns').css("visibility", "hidden");
-      });
-
-      if(play) {
-        $("#pass-btn").hide();
-      }
-
-      var div = $("#round2-chooser");
-      if(first_char != 'S')
-        div.append('<button id="spades" type="button"  class="btn btn-default">' +
-                   '<span class="card-type" style="color:black">♠</span></button>');
-      if(first_char != 'H')
-        div.append('<button id="hearts" type="button" class="btn btn-default">' +
-              '<span class="card-type" style="color:red">♥</span></button>');
-      if(first_char != 'C')
-        div.append('<button id="clubs" type="button" class="btn btn-default">' +
-              '<span class="card-type" style="color:black">♣</span></button>');
-      if(first_char != 'D')
-        div.append('<button id="diamonds" type="button" class="btn btn-default">' +
-              '<span class="card-type" style="color:red">♦</span></button>');
-
-      div.ready(function() {
-        $("#clubs").click(function() {
-          socket.post("/game/round2", {game: id, user: user_id, action: "play", trump: "C"}, function(data) {
-          //if is playing
-          });
-          $('#play-btn').show();
-          $("#round2-chooser").empty();
-          $('#first-round-btns').css('visibility', 'hidden');
-          if(play) $("#pass-btn").show();
-        });
-
-        $("#spades").click(function() {
-          socket.post("/game/round2", {game: id, user: user_id, action: "play", trump: "S"}, function(data) {
-          //if is playing
-          });
-          $('#play-btn').show();
-          $("#round2-chooser").empty();
-          $('#first-round-btns').css('visibility', 'hidden');
-          if(play) $("#pass-btn").show();
-        });
-
-        $("#hearts").click(function() {
-          socket.post("/game/round2", {game: id, user: user_id, action: "play", trump: "H"}, function(data) {
-          //if is playing
-          });
-          $('#play-btn').show();
-          $("#round2-chooser").empty();
-          $('#first-round-btns').css('visibility', 'hidden');
-          if(play) $("#pass-btn").show();
-        });
-
-        $("#diamods").click(function() {
-          socket.post("/game/round2", {game: id, user: user_id, action: "play", trump: "D"}, function(data) {
-          //if is playing
-          });
-          $('#play-btn').show();
-          $("#round2-chooser").empty();
-          $('#first-round-btns').css('visibility', 'hidden');
-          if(play) $("#pass-btn").show();
-        });
-
-        $('#first-round-btns').css('visibility', 'visible');
-
-      });
-    }
-
-    function updateScoreBoardNames(game_ins) {
-      for(var i = 0; i < game_ins.users_names.length; i++) {
-        $("#player" + (i + 1)).html(game_ins.users_names[i]);
-      }
-    }
 
     $("#play-btn").click(function() {
       socket.post("/game/round1", {game: id, user: user_id, action: "play"}, function(data) {
@@ -191,13 +92,11 @@
     });
 
     socket.on("round2", function(data) {
-      //$("#game-table").empty();
       if(user_id == data.userid) {
-        console.log(data);
-        display_buttons(data.gameInstance.trump.charAt(0), data.play);
+        display_buttons(data.gameInstance.trump.charAt(0), data.play, id, user_id);
       } else {
-        //Show message that user is choosing
       }
+      updateActiveUser(data.gameInstance, data.userid);
     });
 
     socket.on("round1", function(data) {
@@ -210,8 +109,8 @@
           $('#first-round-btns').css("visibility", "hidden");
         });
       } else {
-        //Show message that user is choosing
       }
+      updateActiveUser(data.gameInstance, data.userid);
     });
 
     socket.on("allcards", function(data) {
