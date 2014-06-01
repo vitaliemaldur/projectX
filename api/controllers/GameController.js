@@ -1,3 +1,21 @@
+function createDeck(nr_players) {
+  var card = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+  var type = ['C', 'D', 'H', 'S'];
+  var index = 0;
+  var deck = [];
+
+  if(nr_players == 3)
+    index = 2;
+
+  for(var i = index; i < card.length; i++)
+    for(var j = 0; j < type.length; j++)
+      deck.push(type[j] + card[i]);
+
+  deck.sort(function() {return 0.5 - Math.random()});
+
+  return deck;
+}
+
 module.exports = {
 
 	index: function(req, res) {
@@ -21,21 +39,8 @@ module.exports = {
 				console.log("Joc existent sau eroare de creare joc");
 				res.redirect('/user/index');
 			} else {
-        var card = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-        var type = ['C', 'D', 'H', 'S'];
-        var index = 0;
-        var deck = [];
-
-        if(game.total_players == 3)
-          index = 2;
-
-        for(var i = index; i < card.length; i++)
-          for(var j = 0; j < type.length; j++)
-            deck.push(type[j] + card[i]);
-        deck.sort(function() {return 0.5 - Math.random()});
-
         GameInstance.create({id_owner: req.session.userid, id_game: game.id, users_ids: [], users_names: [],
-                            deck: deck, users_cards: [], dealer: req.session.userid})
+                            deck: createDeck(game.total_players), users_cards: [], dealer: req.session.userid})
         .done(function(err, game_ins) {
           if(err) {
             console.log("Joc existent sau eroare de creare instanta joc");
