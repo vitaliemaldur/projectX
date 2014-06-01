@@ -16,6 +16,36 @@ function createDeck(nr_players) {
   return deck;
 }
 
+function firstRoundCards(game_ins, nr_players) {
+  for(var i = 0; i < nr_players; i++) {
+    var cards = [];
+    for(var j = 0; j < 5; j++) {
+      cards.push(game_ins.deck.pop());
+    }
+    game_ins.users_cards.push(cards);
+  }
+  game_ins.trump = game_ins.deck[Math.floor(Math.random() * game_ins.deck.length)];
+}
+
+function firstRoundPlay(game_ins, user_id) {
+  var index = game_ins.users_ids.indexOf(user_id);
+
+  game_ins.active_id = user_id;
+  game_ins.deck.splice(game_ins.deck.indexOf(game_ins.trump), 1);
+  game_ins.users_cards[index].push(game_ins.trump);
+
+  for(var i = 0; i < game_ins.users_ids.length; i++) {
+    var nr_cards = 3;
+
+    if(index == i)
+      nr_cards = 2;
+
+    for(var j = 0; j < nr_cards; j++) {
+      game_ins.users_cards[i].push(game_ins.deck.pop());
+    }
+  }
+}
+
 module.exports = {
 
 	index: function(req, res) {
@@ -78,14 +108,7 @@ module.exports = {
             req.socket.broadcast.to("room" + game.id).emit('update', {game: game.toJSON(), gameInstance: game_ins.toJSON()});
             res.json(game_ins.toJSON());
             if(game.total_players == game.nr_players) {//game begin
-              for(var i = 0; i < game.total_players; i++) {
-                var cards = [];
-                for(var j = 0; j < 5; j++) {
-                  cards.push(game_ins.deck.pop());
-                }
-                game_ins.users_cards.push(cards);
-              }
-              game_ins.trump = game_ins.deck[Math.floor(Math.random() * game_ins.deck.length)];
+              firstRoundCards(game_ins, game.total_players);
               game_ins.save(function(err) {
                 if(err) {
                   console.log("Salvare nereusita a instantei la initializare joc!");
@@ -110,26 +133,7 @@ module.exports = {
       } else {
         var index = game_ins.users_ids.indexOf(user_id);
         if(action == "play") {
-          game_ins.active_id = user_id;
-          game_ins.deck.splice(game_ins.deck.indexOf(game_ins.trump), 1);
-          game_ins.users_cards[index].push(game_ins.trump);
-          for(var i = 0; i < game_ins.users_ids.length; i++) {
-            var nr_cards = 3;
-
-            if(index == i)
-              nr_cards = 2;
-
-            for(var j = 0; j < nr_cards; j++) {
-              if(game_ins.users_ids[i] != game_ins.dealer) {
-                game_ins.users_cards[i].push(game_ins.deck.pop());
-              }
-            }
-          }
-
-          var dealer_index = game_ins.users_ids.indexOf(game_ins.dealer);
-          while(game_ins.deck.length > 0) {
-            game_ins.users_cards[dealer_index].push(game_ins.deck.pop());
-          }
+          firstRoundPlay(game_ins, user_id);
 
           game_ins.save(function(err) {
             if(err) {
@@ -162,7 +166,15 @@ module.exports = {
       } else {
         var index = game_ins.users_ids.indexOf(req.body['user']);
         if(req.body['action'] == "play") {
-          //begin game
+          firstRoundPlay(game_ins, req.body['user']);
+          game_ins.trump = req.body['trump'];
+          game_ins.save(function(err) {
+            if(err) {
+              console.log("Salvare instanta nereusita");
+            }
+          });
+          sails.io.sockets.in('room' + game_ins.id_game)
+          .emit('allcards', game_ins.toJSON());
         } else {
           index = (index + 1) % game_ins.users_ids.length;
           if(index == game_ins.users_ids.indexOf(game_ins.dealer)) {
