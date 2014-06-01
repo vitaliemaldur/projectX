@@ -124,6 +124,27 @@
         });
         $("#player_cards").append(img);
       }
+
+      $("#player_cards").children().each(function() {
+          $(this).hover(function() {
+            $(this).css('top', '-10px');
+          }, function() {
+            $(this).css('top', '0px');
+          });
+
+          $(this).click(function() {
+            $(this).unbind('mouseenter mouseleave');
+
+            $("#game-table").append(this);
+            stack_cards("#game-table");
+            stack_cards("#player_cards");
+
+            $("#player_cards").children().each(function() {
+              $(this).unbind('click');
+            });
+            //send to server
+        });
+      });
     });
 
     socket.on("begin", function(data) {

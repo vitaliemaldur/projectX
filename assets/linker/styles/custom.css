@@ -10,6 +10,7 @@
 .card {
   float: left;
   height: 100%;
+  position: relative;
 }
 
 .player {

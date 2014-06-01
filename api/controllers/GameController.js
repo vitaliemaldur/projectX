@@ -166,7 +166,7 @@ module.exports = {
       } else {
         var index = game_ins.users_ids.indexOf(req.body['user']);
         if(req.body['action'] == "play") {
-          firstRoundPlay(game_ins, req.body['user']);
+          firstRoundPlay(game_ins, game_ins.dealer);
           game_ins.trump = req.body['trump'];
           game_ins.save(function(err) {
             if(err) {
