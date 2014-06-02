@@ -15,14 +15,16 @@ function stack_cards(id_container) {
 
 function updateScoreBoardNames(game_ins) {
   for(var i = 0; i < game_ins.users_names.length; i++) {
-    $("#player" + (i + 1)).html('<span>' + game_ins.users_names[i] + '</span>');
+    $("#player" + (i + 1)).html('<span class="label label-default">' + game_ins.users_names[i] + '</span>');
   }
 }
 
 function updateActiveUser(game_ins, user_id) {
-  $("#active").remove();
   var index = game_ins.users_ids.indexOf(user_id);
-  $("#player" + (index + 1)).append('<span id="active" class="glyphicon glyphicon-eye-open"></span>');
+  for(var i = 0; i < game_ins.users_ids.length; i++) {
+    $("#player" + (i + 1)).children().first().removeClass('label-primary').addClass('label-default');
+  }
+  $("#player" + (index + 1)).children().first().addClass('label-primary');
 }
 
 function display_buttons(first_char, play, id, user_id) {
