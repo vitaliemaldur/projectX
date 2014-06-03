@@ -70,7 +70,8 @@ module.exports = {
 				res.redirect('/user/index');
 			} else {
         GameInstance.create({id_owner: req.session.userid, id_game: game.id, users_ids: [], users_names: [],
-                            deck: createDeck(game.total_players), users_cards: [], dealer: req.session.userid})
+                            deck: createDeck(game.total_players), users_cards: [], dealer: req.session.userid,
+                            combinations: [], scores: [], moves: [], points: 0})
         .done(function(err, game_ins) {
           if(err) {
             console.log("Joc existent sau eroare de creare instanta joc");

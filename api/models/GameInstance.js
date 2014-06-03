@@ -48,6 +48,22 @@ module.exports = {
       type: 'integer'
     },
 
+    combinations: {
+      type: 'array',
+    },
+
+    scores: {
+      type: 'array',
+    },
+
+    moves: {
+      type: 'array',
+    },
+
+    points: {
+      type: 'integer',
+    },
+
   }
 
 };
