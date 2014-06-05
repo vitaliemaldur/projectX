@@ -46,6 +46,75 @@ function firstRoundPlay(game_ins, user_id) {
   }
 }
 
+function comparator(a, b) {
+  var order = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+  return order.indexOf(a.substring(1)) - order.indexOf(b.substring(1));
+}
+
+function getNext(a) {
+  var order = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+  return a.charAt(0) + order[order.indexOf(a.substring(1)) - 1];
+}
+
+function getCombinations(game_ins) {
+  var order = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+  var types = ['S', 'D', 'H', 'C'];
+  for(var i = 0; i < game_ins.users_ids.length; i++) {
+    order.reverse();
+    var combs = [];
+    var combination = [];
+    //consec
+    types.forEach(function(elem1) {
+      order.forEach(function(elem2) {
+        if(game_ins.users_cards[i].indexOf(elem1 + elem2) != -1) {
+          combination.push(elem1 + elem2);
+        } else {
+          if(combination.length >= 3) {
+            if(combs.length == 3)
+              combs.push({userid: game_ins.users_ids[i], comb: combination, points: 2});
+            if(combs.length == 4)
+              combs.push({userid: game_ins.users_ids[i], comb: combination, points: 5});
+            if(combs.length == 5)
+              combs.push({userid: game_ins.users_ids[i], comb: combination, points: 10});
+            if(combs.length >= 5)
+              combs.push({userid: game_ins.users_ids[i], comb: combination, points: 15});
+          }
+          combination = [];
+        }
+      });
+    });
+    //bela
+    if(users_cards[i].indexOf(game_ins.trump.charAt(0) + 'K') != -1 &&
+       users_cards[i].indexOf(game_ins.trump.charAt(0) + 'Q') != -1) {
+      combs.push({userid: game_ins.users_ids[i], comb: [game_ins.trump.charAt(0) + 'K', game_ins.trump.charAt(0) + 'Q'], points: 2});
+    }
+    if(users_cards[i].indexOf('HA') != -1 && users_cards[i].indexOf('CA') != -1 &&
+      users_cards[i].indexOf('SA') != -1 && users_cards[i].indexOf('DA') != -1) {
+      combs.push({userid: game_ins.users_ids[i], comb: ['CA', 'DA', 'HA', 'SA'], points: 11});
+    }
+    if(users_cards[i].indexOf('HK') != -1 && users_cards[i].indexOf('CK') != -1 &&
+      users_cards[i].indexOf('SK') != -1 && users_cards[i].indexOf('DK') != -1) {
+      combs.push({userid: game_ins.users_ids[i], comb: ['CK', 'DK', 'HK', 'SK'], points: 10});
+    }
+    if(users_cards[i].indexOf('HQ') != -1 && users_cards[i].indexOf('CQ') != -1 &&
+      users_cards[i].indexOf('SQ') != -1 && users_cards[i].indexOf('DQ') != -1) {
+      combs.push({userid: game_ins.users_ids[i], comb: ['CQ', 'DQ', 'HQ', 'SQ'], points: 10});
+    }
+    if(users_cards[i].indexOf('HJ') != -1 && users_cards[i].indexOf('CJ') != -1 &&
+      users_cards[i].indexOf('SJ') != -1 && users_cards[i].indexOf('DJ') != -1) {
+      combs.push({userid: game_ins.users_ids[i], comb: ['CJ', 'DJ', 'HJ', 'SJ'], points: 20});
+    }
+    if(users_cards[i].indexOf('H10') != -1 && users_cards[i].indexOf('C10') != -1 &&
+      users_cards[i].indexOf('S10') != -1 && users_cards[i].indexOf('D10') != -1) {
+      combs.push({userid: game_ins.users_ids[i], comb: ['C10', 'D10', 'H10', 'S10'], points: 10});
+    }
+    if(users_cards[i].indexOf('H9') != -1 && users_cards[i].indexOf('C9') != -1 &&
+      users_cards[i].indexOf('S9') != -1 && users_cards[i].indexOf('D9') != -1) {
+      combs.push({userid: game_ins.users_ids[i], comb: ['C9', 'D9', 'H9', 'S9'], points: 14});
+    }
+  }
+}
+
 module.exports = {
 
 	index: function(req, res) {
