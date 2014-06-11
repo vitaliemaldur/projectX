@@ -46,72 +46,103 @@ function firstRoundPlay(game_ins, user_id) {
   }
 }
 
-function comparator(a, b) {
-  var order = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-  return order.indexOf(a.substring(1)) - order.indexOf(b.substring(1));
+function addCombination(container, combination, user_id, card, trump) {
+  if(combination.length >= 3) {
+    switch(combination.length) {
+      case 3:
+        container.push({userid: user_id, comb: combination, points: 2, index: card - 3});
+        break;
+      case 4:
+        container.push({userid: user_id, comb: combination, points: 5, index: card - 4});
+        break;
+      case 5:
+        container.push({userid: user_id, comb: combination, points: 10, index: card - 5});
+        break;
+      default:
+        container.push({userid: user_id, comb: combination, points: 10, index: card - combination.length});
+    }
+  }
 }
 
-function getNext(a) {
-  var order = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-  return a.charAt(0) + order[order.indexOf(a.substring(1)) - 1];
+function comparator(a, b) {
+  if(b.points == a.points && b.length == a.length)
+    return b.index - a.index;
+
+  if(b.points == a.points && b.length != a.length)
+    return b.length - a.length;
+
+  return b.points - a.points;
 }
 
 function getCombinations(game_ins) {
-  var order = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-  var types = ['S', 'D', 'H', 'C'];
+  var order = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'], type = ['C', 'D', 'H', 'S'];
+  //order.reverse();
+  var consecutive = [], fourcards = [], combinations = [];
   for(var i = 0; i < game_ins.users_ids.length; i++) {
-    order.reverse();
-    var combs = [];
-    var combination = [];
-    //consec
-    types.forEach(function(elem1) {
-      order.forEach(function(elem2) {
-        if(game_ins.users_cards[i].indexOf(elem1 + elem2) != -1) {
-          combination.push(elem1 + elem2);
+    var cards = game_ins.users_cards[i];
+    var user_id = game_ins.users_ids[i];
+    //consecutive combinations
+    for(var symbol = 0; symbol < type.length; symbol++) {
+      consecutive = [];
+      for(var card = 0; card < order.length; card++) {
+        var candidat = type[symbol] + order[card];
+        if(cards.indexOf(candidat) != -1) {
+          consecutive.push(candidat);
+          if(card == order.length - 1)
+            addCombination(combinations, consecutive, user_id, card, game_ins.trump);
         } else {
-          if(combination.length >= 3) {
-            if(combs.length == 3)
-              combs.push({userid: game_ins.users_ids[i], comb: combination, points: 2});
-            if(combs.length == 4)
-              combs.push({userid: game_ins.users_ids[i], comb: combination, points: 5});
-            if(combs.length == 5)
-              combs.push({userid: game_ins.users_ids[i], comb: combination, points: 10});
-            if(combs.length >= 5)
-              combs.push({userid: game_ins.users_ids[i], comb: combination, points: 15});
-          }
-          combination = [];
+          addCombination(combinations, consecutive, user_id, card, game_ins.trump);
+          consecutive = [];
         }
-      });
+      }
+    }
+    //four card combination
+    for(var card = 2; card < order.length; card++) {
+      fourcards = [];
+      for(var symbol = 0; symbol < type.length; symbol++) {
+        var candidat = type[symbol] + order[card];
+        if(cards.indexOf(candidat) != -1)
+          fourcards.push(candidat);
+      }
+      if(fourcards.length == 4) {
+        switch(card) {
+          case '9':
+            combinations.push({userid: user_id, comb: fourcards, points: 14, index: card});
+            break;
+          case 'J':
+            combinations.push({userid: user_id, comb: fourcards, points: 20, index: card});
+            break;
+          default:
+            combinations.push({userid: user_id, comb: fourcards, points: 10, index: card});
+        }
+      }
+    }
+    if(cards.indexOf(game_ins.trump.charAt(0) + 'K') != -1 &&
+       cards.indexOf(game_ins.trump.charAt(0) + 'Q') != -1)
+      combinations.push({userid: user_id, comb: [game_ins.trump.charAt(0) + 'K', game_ins.trump.charAt(0) + 'Q'],
+                        points: 2, index: order.indexOf('Q')});
+  }
+
+  combinations.sort(comparator);
+
+  game_ins.combinations = combinations;
+  if(combinations.length > 0) {
+    for(var i = 0; i < combinations.length - 1; i++) {
+      for(var j = i + 1; j < combinations.length; j++) {
+        if(combinations[i].points == combinations[j].points && combinations[i].length == combinations[j].length &&
+          combinations[i].index == combinations[j].index) {
+          if(combinations[i].comb[0].charAt(0) != game_ins.trump.charAt(0))
+            combinations[i].userid = -1;
+          if(combinations[j].comb[0].charAt(0) != game_ins.trump.charAt(0))
+            combinations[j].userid = -1;
+        }
+      }
+    }
+
+    var userid = combinations[0].userid;
+    game_ins.combinations = combinations.filter(function(elem) {
+      return elem.userid == userid || elem.comb.length == 2;
     });
-    //bela
-    if(users_cards[i].indexOf(game_ins.trump.charAt(0) + 'K') != -1 &&
-       users_cards[i].indexOf(game_ins.trump.charAt(0) + 'Q') != -1) {
-      combs.push({userid: game_ins.users_ids[i], comb: [game_ins.trump.charAt(0) + 'K', game_ins.trump.charAt(0) + 'Q'], points: 2});
-    }
-    if(users_cards[i].indexOf('HA') != -1 && users_cards[i].indexOf('CA') != -1 &&
-      users_cards[i].indexOf('SA') != -1 && users_cards[i].indexOf('DA') != -1) {
-      combs.push({userid: game_ins.users_ids[i], comb: ['CA', 'DA', 'HA', 'SA'], points: 11});
-    }
-    if(users_cards[i].indexOf('HK') != -1 && users_cards[i].indexOf('CK') != -1 &&
-      users_cards[i].indexOf('SK') != -1 && users_cards[i].indexOf('DK') != -1) {
-      combs.push({userid: game_ins.users_ids[i], comb: ['CK', 'DK', 'HK', 'SK'], points: 10});
-    }
-    if(users_cards[i].indexOf('HQ') != -1 && users_cards[i].indexOf('CQ') != -1 &&
-      users_cards[i].indexOf('SQ') != -1 && users_cards[i].indexOf('DQ') != -1) {
-      combs.push({userid: game_ins.users_ids[i], comb: ['CQ', 'DQ', 'HQ', 'SQ'], points: 10});
-    }
-    if(users_cards[i].indexOf('HJ') != -1 && users_cards[i].indexOf('CJ') != -1 &&
-      users_cards[i].indexOf('SJ') != -1 && users_cards[i].indexOf('DJ') != -1) {
-      combs.push({userid: game_ins.users_ids[i], comb: ['CJ', 'DJ', 'HJ', 'SJ'], points: 20});
-    }
-    if(users_cards[i].indexOf('H10') != -1 && users_cards[i].indexOf('C10') != -1 &&
-      users_cards[i].indexOf('S10') != -1 && users_cards[i].indexOf('D10') != -1) {
-      combs.push({userid: game_ins.users_ids[i], comb: ['C10', 'D10', 'H10', 'S10'], points: 10});
-    }
-    if(users_cards[i].indexOf('H9') != -1 && users_cards[i].indexOf('C9') != -1 &&
-      users_cards[i].indexOf('S9') != -1 && users_cards[i].indexOf('D9') != -1) {
-      combs.push({userid: game_ins.users_ids[i], comb: ['C9', 'D9', 'H9', 'S9'], points: 14});
-    }
   }
 }
 
@@ -210,6 +241,7 @@ module.exports = {
               console.log("Salvare instanta nereusita");
             }
           });
+          getCombinations(game_ins);
           sails.io.sockets.in('room' + game_ins.id_game)
           .emit('allcards', game_ins.toJSON());
         } else {
@@ -243,6 +275,7 @@ module.exports = {
               console.log("Salvare instanta nereusita");
             }
           });
+          getCombinations(game_ins);
           sails.io.sockets.in('room' + game_ins.id_game)
           .emit('allcards', game_ins.toJSON());
         } else {
