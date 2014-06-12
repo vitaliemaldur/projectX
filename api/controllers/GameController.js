@@ -30,7 +30,7 @@ function firstRoundCards(game_ins, nr_players) {
 function firstRoundPlay(game_ins, user_id) {
   var index = game_ins.users_ids.indexOf(user_id);
 
-  game_ins.active_id = user_id;
+  game_ins.active_id = game_ins.played_id = user_id;
   game_ins.deck.splice(game_ins.deck.indexOf(game_ins.trump), 1);
   game_ins.users_cards[index].push(game_ins.trump);
 
@@ -105,7 +105,7 @@ function getCombinations(game_ins) {
           fourcards.push(candidat);
       }
       if(fourcards.length == 4) {
-        switch(card) {
+        switch(order[card]) {
           case '9':
             combinations.push({userid: user_id, comb: fourcards, points: 14, index: card});
             break;
@@ -143,6 +143,12 @@ function getCombinations(game_ins) {
     game_ins.combinations = combinations.filter(function(elem) {
       return elem.userid == userid || elem.comb.length == 2;
     });
+
+    game_ins.points = 0;
+
+    for(var i = 0; i < combinations.length; i++) {
+      game_ins.points += combinations[i].points;
+    }
   }
 }
 
@@ -171,7 +177,7 @@ module.exports = {
 			} else {
         GameInstance.create({id_owner: req.session.userid, id_game: game.id, users_ids: [], users_names: [],
                             deck: createDeck(game.total_players), users_cards: [], dealer: req.session.userid,
-                            combinations: [], scores: [], moves: [], points: 0})
+                            combinations: [], scores: [0, 0, 0, 0], moves: ['', '', '', ''], points: 0})
         .done(function(err, game_ins) {
           if(err) {
             console.log("Joc existent sau eroare de creare instanta joc");
@@ -288,6 +294,37 @@ module.exports = {
             .emit('round2', {gameInstance: game_ins.toJSON(), userid: game_ins.users_ids[index], play: false});
           }
         }
+      }
+    });
+  },
+
+  move: function(req, res) {
+    GameInstance.findOne({id_game: req.body['game']}, function(err, game_ins) {
+      if(err) {
+        console.log("Intanta jocului nu a fost gasita! in functia move");
+      } else {
+        var index = game_ins.users_ids.indexOf(game_ins.active_id);
+        game_ins.moves[index] = req.body['card'];
+        index = (index + 1) % game_ins.users_ids.length;
+        console.log("Current " + game_ins.active_id);
+        console.log("Next " + game_ins.users_ids[index]);
+        game_ins.active_id = game_ins.users_ids[index];
+
+        game_ins.save(function(err) {
+          if(err) {
+            console.log("Salvare instanta nereusita");
+          }
+        });
+
+        req.socket.broadcast.to("room" + game_ins.id_game).emit('move', {card: req.body['card'], gameInstance: game_ins});
+
+        if(game_ins.users_ids[index] == game_ins.played_id) {
+          //get cards
+        } else {
+          //next card
+        }
+
+        res.json(game_ins.toJSON());
       }
     });
   },

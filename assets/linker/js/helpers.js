@@ -31,7 +31,6 @@ function display_buttons(first_char, play, id, user_id) {
   $('#play-btn').hide();
 
   $("#pass-btn").click(function() {
-    console.log("da");
     socket.post("/game/round2", {game: id, user: user_id, action: "pass"}, function(data) {
       //if is passing
     });
@@ -89,7 +88,7 @@ function display_buttons(first_char, play, id, user_id) {
       if(play) $("#pass-btn").show();
     });
 
-    $("#diamods").click(function() {
+    $("#diamonds").click(function() {
       socket.post("/game/round2", {game: id, user: user_id, action: "play", trump: "D"}, function(data) {
       //if is playing
       });

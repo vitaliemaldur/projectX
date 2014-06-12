@@ -45,7 +45,11 @@ module.exports = {
     },
 
     active_id: {
-      type: 'integer'
+      type: 'integer',
+    },
+
+    played_id: {
+      type: 'integer',
     },
 
     combinations: {

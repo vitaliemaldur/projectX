@@ -119,33 +119,67 @@
       var index = data.users_ids.indexOf(user_id);
       var cards = data.users_cards[index];
       for(var i = 5; i < cards.length; i++) {
-        var img = $('<img>', {class: "img-responsive card", src: "/linker/images/" + cards[i] + ".png"});
+        var img = $('<img>', {class: "img-responsive card", src: "/linker/images/" + cards[i] + ".png", alt: cards[i]});
         img.load(function() {
           stack_cards("#player_cards");
         });
         $("#player_cards").append(img);
       }
 
-//      $("#player_cards").children().each(function() {
-//        $(this).hover(function() {
-//          $(this).css('top', '-10px');
-//        }, function() {
-//          $(this).css('top', '0px');
-//        });
-//
-//        $(this).click(function() {
-//          $(this).unbind('mouseenter mouseleave');
-//
-//          $("#game-table").append(this);
-//          stack_cards("#game-table");
-//          stack_cards("#player_cards");
-//
-//          $("#player_cards").children().each(function() {
-//            $(this).unbind('click');
-//          });
-//          //send to server
-//        });
-//      });
+      if(data.active_id == user_id) {
+        $("#player_cards").children().each(function() {
+          $(this).click(function() {
+            $(this).css('top', '0px');
+            $(this).unbind('mouseenter mouseleave');
+
+            $("#game-table").append(this);
+            stack_cards("#game-table");
+            stack_cards("#player_cards");
+
+            $("#player_cards").children().each(function() {
+              $(this).unbind('click');
+            });
+            socket.post("/game/move", {game: id, user: user_id, card: $(this).attr('alt')}, function(data) {
+              updateActiveUser(data, data.active_id);
+            });
+          });
+        });
+      }
+
+      $("#player_cards").children().each(function() {
+        $(this).hover(function() {
+          $(this).css('top', '-10px');
+        }, function() {
+          $(this).css('top', '0px');
+        });
+      });
+    });
+
+    socket.on('move', function(data) {
+      var img = $('<img>', {class: "img-responsive card", src: "/linker/images/" + data.card + ".png", alt: data.card});
+      $("#game-table").append(img);
+      stack_cards("#game-table");
+      updateActiveUser(data.gameInstance, data.gameInstance.active_id);
+
+      if(data.gameInstance.active_id == user_id) {
+        $("#player_cards").children().each(function() {
+          $(this).click(function() {
+            $(this).css('top', '0px');
+            $(this).unbind('mouseenter mouseleave');
+
+            $("#game-table").append(this);
+            stack_cards("#game-table");
+            stack_cards("#player_cards");
+
+            $("#player_cards").children().each(function() {
+              $(this).unbind('click');
+            });
+            socket.post("/game/move", {game: id, user: user_id, card: $(this).attr('alt')}, function(data) {
+              updateActiveUser(data, data.active_id);
+            });
+          });
+        });
+      }
     });
 
     socket.on("begin", function(data) {
@@ -155,7 +189,7 @@
       var index = data.users_ids.indexOf(user_id);
       var cards = data.users_cards[index];
       for(var i = 0; i < cards.length; i++) {
-        var img = $('<img>', {class: "img-responsive card", src: "/linker/images/" + cards[i] + ".png"});
+        var img = $('<img>', {class: "img-responsive card", src: "/linker/images/" + cards[i] + ".png", alt: cards[i]});
         img.load(function() {
           stack_cards("#player_cards");
         });
