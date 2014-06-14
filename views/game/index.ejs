@@ -153,7 +153,6 @@
     });
 
     socket.on('move', function(data) {
-      console.log(data);
       var img = $('<img>', {class: "img-responsive card", src: "/linker/images/" + data.card + ".png", alt: data.card});
       img.load(function() {
         $("#game-table").append(img);

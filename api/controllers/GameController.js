@@ -50,16 +50,16 @@ function addCombination(container, combination, user_id, card, trump) {
   if(combination.length >= 3) {
     switch(combination.length) {
       case 3:
-        container.push({userid: user_id, comb: combination, points: 2, index: card - 3});
+        container.push({userid: user_id, comb: combination, points: 20, index: card - 3});
         break;
       case 4:
-        container.push({userid: user_id, comb: combination, points: 5, index: card - 4});
+        container.push({userid: user_id, comb: combination, points: 50, index: card - 4});
         break;
       case 5:
-        container.push({userid: user_id, comb: combination, points: 10, index: card - 5});
+        container.push({userid: user_id, comb: combination, points: 100, index: card - 5});
         break;
       default:
-        container.push({userid: user_id, comb: combination, points: 10, index: card - combination.length});
+        container.push({userid: user_id, comb: combination, points: 100, index: card - combination.length});
     }
   }
 }
@@ -107,20 +107,20 @@ function getCombinations(game_ins) {
       if(fourcards.length == 4) {
         switch(order[card]) {
           case '9':
-            combinations.push({userid: user_id, comb: fourcards, points: 14, index: card});
+            combinations.push({userid: user_id, comb: fourcards, points: 140, index: card});
             break;
           case 'J':
-            combinations.push({userid: user_id, comb: fourcards, points: 20, index: card});
+            combinations.push({userid: user_id, comb: fourcards, points: 200, index: card});
             break;
           default:
-            combinations.push({userid: user_id, comb: fourcards, points: 10, index: card});
+            combinations.push({userid: user_id, comb: fourcards, points: 100, index: card});
         }
       }
     }
     if(cards.indexOf(game_ins.trump.charAt(0) + 'K') != -1 &&
        cards.indexOf(game_ins.trump.charAt(0) + 'Q') != -1)
       combinations.push({userid: user_id, comb: [game_ins.trump.charAt(0) + 'K', game_ins.trump.charAt(0) + 'Q'],
-                        points: 2, index: order.indexOf('Q')});
+                        points: 20, index: order.indexOf('Q')});
   }
 
   combinations.sort(comparator);
@@ -144,7 +144,7 @@ function getCombinations(game_ins) {
       return elem.userid == userid || elem.comb.length == 2;
     });
 
-    game_ins.points = 16;
+    game_ins.points = 160;
 
     for(var i = 0; i < game_ins.combinations.length; i++) {
       game_ins.points += game_ins.combinations[i].points;
@@ -375,9 +375,14 @@ module.exports = {
         });
 
         if(game_ins.users_cards.length == 0 && game_ins.moves.indexOf('') == -1) {
-          for(var i = 0; i < game_ins.scores.length; i++) {
-            //round scores + last
+          if(game_ins.active_id != game_ins.played_id) {
+            game_ins.scores[game_ins.users_ids.indexOf(game_ins.active_id)] += 10;
           }
+          game_ins.save(function(err) {
+            if(err) {
+              console.log("Salvare instanta nereusita");
+            }
+          });
           sails.io.sockets.in("room" + game_ins.id_game).emit('score', game_ins.toJSON());
         } else {
           sails.io.sockets.in("room" + game_ins.id_game)
