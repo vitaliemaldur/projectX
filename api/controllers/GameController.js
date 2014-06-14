@@ -144,12 +144,56 @@ function getCombinations(game_ins) {
       return elem.userid == userid || elem.comb.length == 2;
     });
 
-    game_ins.points = 0;
+    game_ins.points = 16;
 
-    for(var i = 0; i < combinations.length; i++) {
-      game_ins.points += combinations[i].points;
+    for(var i = 0; i < game_ins.combinations.length; i++) {
+      game_ins.points += game_ins.combinations[i].points;
     }
   }
+}
+
+function getScore(game_ins) {
+  var notrump = ['7', '8', '9', 'J', 'Q', 'K', '10', 'A'];
+  var points1 = [0, 0, 0, 2, 3, 4, 10, 11];
+  var points2 = [0, 0, 3, 4, 10, 11, 14, 20];
+  var withtrump = ['7', '8', 'Q', 'K', '10', 'A', '9', 'J'];
+  var first_card_index = game_ins.users_ids.indexOf(game_ins.active_id);
+  first_card_index = (first_card_index + 1) % game_ins.users_ids.length;
+  var max_index = first_card_index;
+  var use_trump = false;
+  for(var i = 0; i < game_ins.moves.length; i++) {
+    if(i != first_card_index) {
+      if(game_ins.moves[first_card_index].charAt(0) == game_ins.trump.charAt(0)) {
+        var current_max = withtrump.indexOf(game_ins.moves[max_index].substring(1));
+        var candidatate = withtrump.indexOf(game_ins.moves[i].substring(1));
+        if(game_ins.moves[i].charAt(0) == game_ins.trump.charAt(0) && current_max < candidatate)
+          max_index = i;
+      } else {
+        if(!use_trump && game_ins.moves[i].charAt(0) == game_ins.moves[first_card_index].charAt(0)) {
+          var current_max = notrump.indexOf(game_ins.moves[max_index].substring(1));
+          var candidatate = notrump.indexOf(game_ins.moves[i].substring(1));
+          if(current_max < candidatate) max_index = i;
+        }
+
+        if(game_ins.moves[i].charAt(0) == game_ins.trump.charAt(0)) {
+          if(!use_trump) max_index = i;
+          use_trump = true;
+          var current_max = withtrump.indexOf(game_ins.moves[max_index].substring(1));
+          var candidatate = withtrump.indexOf(game_ins.moves[i].substring(1));
+          if(current_max < candidatate) max_index = i;
+        }
+      }
+    }
+  }
+  game_ins.active_id = game_ins.users_ids[max_index];
+  for(var i = 0; i < game_ins.moves.length; i++) {
+    if(game_ins.moves[i].charAt(0) == game_ins.trump.charAt(0)) {
+      game_ins.scores[max_index] += points2[withtrump.indexOf(game_ins.moves[i].substring(1))];
+    } else {
+      game_ins.scores[max_index] += points1[notrump.indexOf(game_ins.moves[i].substring(1))];
+    }
+  }
+  console.log(game_ins);
 }
 
 module.exports = {
@@ -175,9 +219,15 @@ module.exports = {
 				console.log("Joc existent sau eroare de creare joc");
 				res.redirect('/user/index');
 			} else {
+        var scores = new Array(game.total_players);
+        var moves = new Array(game.total_players);
+        for(var i = 0; i < game.total_players; i++) {
+          scores[i] = 0;
+          moves[i] = '';
+        }
         GameInstance.create({id_owner: req.session.userid, id_game: game.id, users_ids: [], users_names: [],
                             deck: createDeck(game.total_players), users_cards: [], dealer: req.session.userid,
-                            combinations: [], scores: [0, 0, 0, 0], moves: ['', '', '', ''], points: 0})
+                            combinations: [], scores: scores, moves: moves, points: 0})
         .done(function(err, game_ins) {
           if(err) {
             console.log("Joc existent sau eroare de creare instanta joc");
@@ -241,13 +291,13 @@ module.exports = {
         var index = game_ins.users_ids.indexOf(user_id);
         if(action == "play") {
           firstRoundPlay(game_ins, user_id);
+          getCombinations(game_ins);
 
           game_ins.save(function(err) {
             if(err) {
               console.log("Salvare instanta nereusita");
             }
           });
-          getCombinations(game_ins);
           sails.io.sockets.in('room' + game_ins.id_game)
           .emit('allcards', game_ins.toJSON());
         } else {
@@ -276,12 +326,12 @@ module.exports = {
         if(req.body['action'] == "play") {
           firstRoundPlay(game_ins, game_ins.dealer);
           game_ins.trump = req.body['trump'];
+          getCombinations(game_ins);
           game_ins.save(function(err) {
             if(err) {
               console.log("Salvare instanta nereusita");
             }
           });
-          getCombinations(game_ins);
           sails.io.sockets.in('room' + game_ins.id_game)
           .emit('allcards', game_ins.toJSON());
         } else {
@@ -304,11 +354,19 @@ module.exports = {
         console.log("Intanta jocului nu a fost gasita! in functia move");
       } else {
         var index = game_ins.users_ids.indexOf(game_ins.active_id);
+        var clear_flag = false;
         game_ins.moves[index] = req.body['card'];
+        game_ins.users_cards[index].splice(game_ins.users_cards[index].indexOf(req.body['card']), 1);
         index = (index + 1) % game_ins.users_ids.length;
-        console.log("Current " + game_ins.active_id);
-        console.log("Next " + game_ins.users_ids[index]);
-        game_ins.active_id = game_ins.users_ids[index];
+
+        if(game_ins.moves.indexOf('') == -1) {//all players moved
+          getScore(game_ins);
+          clear_flag = true;
+          for(var i = 0; i < game_ins.moves.length; i++)
+            game_ins.moves[i] = '';
+        } else {
+          game_ins.active_id = game_ins.users_ids[index];
+        }
 
         game_ins.save(function(err) {
           if(err) {
@@ -316,15 +374,16 @@ module.exports = {
           }
         });
 
-        req.socket.broadcast.to("room" + game_ins.id_game).emit('move', {card: req.body['card'], gameInstance: game_ins});
-
-        if(game_ins.users_ids[index] == game_ins.played_id) {
-          //get cards
+        if(game_ins.users_cards.length == 0 && game_ins.moves.indexOf('') == -1) {
+          for(var i = 0; i < game_ins.scores.length; i++) {
+            //round scores + last
+          }
+          sails.io.sockets.in("room" + game_ins.id_game).emit('score', game_ins.toJSON());
         } else {
-          //next card
+          sails.io.sockets.in("room" + game_ins.id_game)
+          .emit('move', {card: req.body['card'], clear: clear_flag, gameInstance: game_ins.toJSON()});
+          res.json(game_ins.toJSON());
         }
-
-        res.json(game_ins.toJSON());
       }
     });
   },

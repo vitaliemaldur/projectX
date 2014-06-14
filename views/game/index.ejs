@@ -57,7 +57,7 @@
     </div>
   </div>
   <div class="col-lg-3">
-    <table class="table">
+    <table class="table" id="scoreboard">
       <thead>
         <tr>
           <th id="player1">Player1</th>
@@ -114,7 +114,6 @@
     });
 
     socket.on("allcards", function(data) {
-      console.log(data);
       $("#game-table").empty();
       var index = data.users_ids.indexOf(user_id);
       var cards = data.users_cards[index];
@@ -132,16 +131,14 @@
             $(this).css('top', '0px');
             $(this).unbind('mouseenter mouseleave');
 
-            $("#game-table").append(this);
-            stack_cards("#game-table");
-            stack_cards("#player_cards");
-
             $("#player_cards").children().each(function() {
               $(this).unbind('click');
             });
             socket.post("/game/move", {game: id, user: user_id, card: $(this).attr('alt')}, function(data) {
-              updateActiveUser(data, data.active_id);
+              //updateActiveUser(data, data.active_id);
             });
+            $(this).remove();
+            stack_cards("#player_cards");
           });
         });
       }
@@ -156,10 +153,19 @@
     });
 
     socket.on('move', function(data) {
+      console.log(data);
       var img = $('<img>', {class: "img-responsive card", src: "/linker/images/" + data.card + ".png", alt: data.card});
-      $("#game-table").append(img);
-      stack_cards("#game-table");
+      img.load(function() {
+        $("#game-table").append(img);
+        stack_cards("#game-table");
+      });
       updateActiveUser(data.gameInstance, data.gameInstance.active_id);
+
+      setTimeout(function () {
+        if(data.clear) {
+          $("#game-table").empty();
+        }
+      }, 1000);
 
       if(data.gameInstance.active_id == user_id) {
         $("#player_cards").children().each(function() {
@@ -167,16 +173,14 @@
             $(this).css('top', '0px');
             $(this).unbind('mouseenter mouseleave');
 
-            $("#game-table").append(this);
-            stack_cards("#game-table");
-            stack_cards("#player_cards");
-
-            $("#player_cards").children().each(function() {
+           $("#player_cards").children().each(function() {
               $(this).unbind('click');
             });
             socket.post("/game/move", {game: id, user: user_id, card: $(this).attr('alt')}, function(data) {
-              updateActiveUser(data, data.active_id);
+              //updateActiveUser(data, data.active_id);
             });
+            $(this).remove();
+            stack_cards("#player_cards");
           });
         });
       }
@@ -224,6 +228,15 @@
         img.addClass("pull-right");
         $("#north-east").html(img);
       }
+    });
+
+    socket.on("score", function(data) {
+      var row = $('<tr>');
+      for(var i = 0; i < data.users_ids.length; i++) {
+        row.append($('<td>').html(data.scores[i]));
+      }
+      row.append($('<td>').html(data.points));
+      $("#scoreboard").append(row);
     });
   });
 
