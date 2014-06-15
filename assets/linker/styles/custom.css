@@ -3,6 +3,16 @@
   width: 33.33%;
 }
 
+.player-name {
+  margin: 0px;
+  margin-top: 10px;
+}
+
+.delimiter {
+  margin-top: 2px;
+  margin-bottom: 0px;
+}
+
 .card-type {
   font-size: 30px;
 }

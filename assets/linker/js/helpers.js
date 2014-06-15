@@ -13,6 +13,38 @@ function stack_cards(id_container) {
   }
 }
 
+function displayCombinations(game_ins) {
+  $('#collapseCombinations').on('show.bs.collapse', function () {
+    $('#collapseScoreboard').collapse('hide');
+  });
+
+  $('#collapseScoreboard').on('show.bs.collapse', function () {
+    $('#collapseCombinations').collapse('hide');
+  });
+
+  $("#continationsContainer").empty();
+  for(var i = 0; i < game_ins.users_ids.length; i++) {
+    var used = false;
+    for(var j = 0; j < game_ins.combinations.length; j++) {
+      if(game_ins.users_ids[i] == game_ins.combinations[j].userid) {
+        if(!used) {
+          used = true;
+          $("#continationsContainer").append($('<p>', {class: "player-name"}).html("<b>" + game_ins.users_names[i] + "</b>"));
+          $("#continationsContainer").append($('<hr>', {class: "delimiter"}));
+        }
+        var row = $('<div>', {class: "row"}).css("margin-top", "7px");
+        var col = $('<div>', {class: "col-lg-12"}).css("height", "80px");
+        for(var k = 0; k < game_ins.combinations[j].comb.length; k++) {
+          var card = $('<img>', {class: "img-responsive card", src: "/linker/images/" + game_ins.combinations[j].comb[k] + ".png"});
+          card.css("margin-right", "5px");
+          col.append(card);
+        }
+        $("#continationsContainer").append(row.append(col));
+      }
+    }
+  }
+}
+
 function updateScoreBoardNames(game_ins) {
   for(var i = 0; i < game_ins.users_names.length; i++) {
     $("#player" + (i + 1)).html('<span class="label label-default">' + game_ins.users_names[i] + '</span>');

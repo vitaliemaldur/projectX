@@ -1,5 +1,5 @@
 <div class="row">
-  <div class="col-lg-8" id="game-room">
+  <div class="col-lg-8 col-md-8" id="game-room">
     <div class="row" id="north">
       <div class="col-lg-3" id="north-west">
         <% if(game.nr_players >= 2) { %>
@@ -56,22 +56,50 @@
       </div>
     </div>
   </div>
-  <div class="col-lg-3">
-    <table class="table" id="scoreboard">
-      <thead>
-        <tr>
-          <th id="player1">Player1</th>
-          <th id="player2">Player2</th>
-          <th id="player3">Player3</th>
-          <% if(game.total_players == 4) { %>
-            <th id="player4">Player4</th>
-          <% } %>
-          <th>Total</th>
-        </tr>
-      </thead>
-    </table>
+  <div class="col-lg-3 col-md-3" style="width: 30%">
+    <div class="panel-group" id="accordion">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseScoreboard">
+              Scoreboard
+            </a>
+          </h4>
+        </div>
+        <div id="collapseScoreboard" class="panel-collapse collapse in">
+          <div class="panel-body" style="height: 443px">
+            <table class="table" id="scoreboard">
+              <thead>
+                <tr>
+                  <th id="player1">Player1</th>
+                  <th id="player2">Player2</th>
+                  <th id="player3">Player3</th>
+                  <% if(game.total_players == 4) { %>
+                    <th id="player4">Player4</th>
+                  <% } %>
+                  <th>Total</th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseCombinations">
+              Combinations
+            </a>
+          </h4>
+        </div>
+        <div id="collapseCombinations" class="panel-collapse collapse">
+          <div id="continationsContainer" class="panel-body" style="padding-top: 0px; padding-bottom: 0px; overflow-y: auto; height: 440px">
+            <h4 class="text-center">No combinations</h4>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
 <script>
   $(window).load(function() {
     var url = window.location.href.split("/");
@@ -114,6 +142,9 @@
     });
 
     socket.on("allcards", function(data) {
+      displayCombinations(data);
+      $('#collapseScoreboard').collapse('hide');
+      $('#collapseCombinations').collapse('show');
       $("#game-table").empty();
       var index = data.users_ids.indexOf(user_id);
       var cards = data.users_cards[index];
@@ -153,6 +184,8 @@
     });
 
     socket.on('move', function(data) {
+      $('#collapseCombinations').collapse('hide');
+      $('#collapseScoreboard').collapse('show');
       var img = $('<img>', {class: "img-responsive card", src: "/linker/images/" + data.card + ".png", alt: data.card});
       img.load(function() {
         $("#game-table").append(img);
@@ -186,6 +219,7 @@
     });
 
     socket.on("begin", function(data) {
+      $("#continationsContainer").html('<h4 class="text-center">No combinations</h4>');
       if(user_id == 0)
         user_id = data.users_ids[data.users_ids.length - 1];
 
