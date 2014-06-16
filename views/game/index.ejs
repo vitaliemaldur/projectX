@@ -120,6 +120,7 @@
     });
 
     socket.on("round2", function(data) {
+      console.log(data);
       if(user_id == data.userid) {
         display_buttons(data.gameInstance.trump.charAt(0), data.play, id, user_id);
       } else {
@@ -130,6 +131,7 @@
     socket.on("round1", function(data) {
       if(user_id == data.userid) {
         $('#first-round-btns').css("visibility", "visible");
+        $("#pass-btn").unbind('click');
         $("#pass-btn").click(function() {
           socket.post("/game/round1", {game: id, user: user_id, action: "pass"}, function(data) {
             //if is passing
@@ -219,25 +221,27 @@
     });
 
     socket.on("begin", function(data) {
-      $("#continationsContainer").html('<h4 class="text-center">No combinations</h4>');
-      if(user_id == 0)
-        user_id = data.users_ids[data.users_ids.length - 1];
+      setTimeout(function () {
+        $("#continationsContainer").html('<h4 class="text-center">No combinations</h4>');
+        if(user_id == 0)
+          user_id = data.users_ids[data.users_ids.length - 1];
 
-      var index = data.users_ids.indexOf(user_id);
-      var cards = data.users_cards[index];
-      for(var i = 0; i < cards.length; i++) {
-        var img = $('<img>', {class: "img-responsive card", src: "/linker/images/" + cards[i] + ".png", alt: cards[i]});
-        img.load(function() {
-          stack_cards("#player_cards");
-        });
-        $("#player_cards").append(img);
-      }
+        var index = data.users_ids.indexOf(user_id);
+        var cards = data.users_cards[index];
+        for(var i = 0; i < cards.length; i++) {
+          var img = $('<img>', {class: "img-responsive card", src: "/linker/images/" + cards[i] + ".png", alt: cards[i]});
+          img.load(function() {
+            stack_cards("#player_cards");
+          });
+          $("#player_cards").append(img);
+        }
 
-      var trump = $('<img>', {class: "img-responsive card", src: "/linker/images/" + data.trump + ".png"});
-      var deck  = $('<img>', {class: "img-responsive card", src: "/linker/images/back.jpg"});
-      trump.load(function() {stack_cards("#game-table");});
-      deck.load(function() {stack_cards("#game-table");});
-      $("#game-table").append(trump).append(deck);
+        var trump = $('<img>', {class: "img-responsive card", src: "/linker/images/" + data.trump + ".png"});
+        var deck  = $('<img>', {class: "img-responsive card", src: "/linker/images/back.jpg"});
+        trump.load(function() {stack_cards("#game-table");});
+        deck.load(function() {stack_cards("#game-table");});
+        $("#game-table").append(trump).append(deck);
+      }, 1000);
     });
 
     socket.on("update", function(data) {
@@ -266,7 +270,7 @@
     socket.on("score", function(data) {
       var row = $('<tr>');
       for(var i = 0; i < data.users_ids.length; i++) {
-        row.append($('<td>').html(data.scores[i]));
+        row.append($('<td>').html(data.final_scores[i]));
       }
       row.append($('<td>').html(data.points));
       $("#scoreboard").append(row);

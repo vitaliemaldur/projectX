@@ -63,7 +63,7 @@ function updateActiveUser(game_ins, user_id) {
 
 function display_buttons(first_char, play, id, user_id) {
   $('#play-btn').hide();
-
+  $("#pass-btn").unbind('click');
   $("#pass-btn").click(function() {
     socket.post("/game/round2", {game: id, user: user_id, action: "pass"}, function(data) {
       //if is passing

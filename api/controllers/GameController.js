@@ -126,6 +126,7 @@ function getCombinations(game_ins) {
   combinations.sort(comparator);
 
   game_ins.combinations = combinations;
+  game_ins.points = 16;
   if(combinations.length > 0) {
     for(var i = 0; i < combinations.length - 1; i++) {
       for(var j = i + 1; j < combinations.length; j++) {
@@ -144,7 +145,6 @@ function getCombinations(game_ins) {
       return elem.userid == userid || elem.comb.length == 2;
     });
 
-    game_ins.points = 16;
 
     for(var i = 0; i < game_ins.combinations.length; i++) {
       game_ins.points += game_ins.combinations[i].points;
@@ -220,14 +220,15 @@ module.exports = {
 				res.redirect('/user/index');
 			} else {
         var scores = new Array(game.total_players);
+        var final = new Array(game.total_players);
         var moves = new Array(game.total_players);
         for(var i = 0; i < game.total_players; i++) {
-          scores[i] = 0;
+          scores[i] = final[i] = 0;
           moves[i] = '';
         }
         GameInstance.create({id_owner: req.session.userid, id_game: game.id, users_ids: [], users_names: [],
                             deck: createDeck(game.total_players), users_cards: [], dealer: req.session.userid,
-                            combinations: [], scores: scores, moves: moves, points: 0, final_scores: scores})
+                            combinations: [], scores: scores, moves: moves, points: 0, final_scores: final})
         .done(function(err, game_ins) {
           if(err) {
             console.log("Joc existent sau eroare de creare instanta joc");
@@ -272,7 +273,8 @@ module.exports = {
                 }
               });
               sails.io.sockets.in('room' + game.id).emit('begin', game_ins.toJSON());
-              sails.io.sockets.in('room' + game.id).emit('round1', {gameInstance: game_ins.toJSON(), userid: game_ins.users_ids[1]});
+              var next = (game_ins.users_ids.indexOf(game_ins.dealer) + 1) % game_ins.users_ids.length;
+              sails.io.sockets.in('room' + game.id).emit('round1', {gameInstance: game_ins.toJSON(), userid: game_ins.users_ids[next]});
             }
           }
         });
@@ -324,7 +326,7 @@ module.exports = {
       } else {
         var index = game_ins.users_ids.indexOf(req.body['user']);
         if(req.body['action'] == "play") {
-          firstRoundPlay(game_ins, game_ins.dealer);
+          firstRoundPlay(game_ins, req.body['user']);
           game_ins.trump = req.body['trump'];
           getCombinations(game_ins);
           game_ins.save(function(err) {
@@ -422,16 +424,31 @@ module.exports = {
           }
           //add do final scores
           for(var i = 0; i < game_ins.scores.length; i++) {
-            game_ins.final_scores[i] += game_ins.score[i];
+            game_ins.final_scores[i] += game_ins.scores[i];
+            game_ins.scores[i] = 0;
           }
+          sails.io.sockets.in("room" + game_ins.id_game).emit('score', game_ins.toJSON());
+
+          //prepare for next round
+          var next_dealer = (game_ins.users_ids.indexOf(game_ins.dealer) + 1) % game_ins.users_ids.length;
+          game_ins.dealer = game_ins.users_ids[next_dealer];
+
+          game_ins.deck = createDeck(game_ins.users_ids.length);
+          game_ins.users_cards = [];
+          firstRoundCards(game_ins, game_ins.users_ids.length);
+
+          game_ins.points = 0;
 
           game_ins.save(function(err) {
             if(err) {
               console.log("Salvare instanta nereusita");
             }
           });
-
-          sails.io.sockets.in("room" + game_ins.id_game).emit('score', game_ins.toJSON());
+          console.log(game_ins);
+          sails.io.sockets.in('room' + game_ins.id_game).emit('begin', game_ins.toJSON());
+          var next = (game_ins.users_ids.indexOf(game_ins.dealer) + 1) % game_ins.users_ids.length;
+          sails.io.sockets.in('room' + game_ins.id_game)
+          .emit('round1', {gameInstance: game_ins.toJSON(), userid: game_ins.users_ids[next]});
         }
       }
     });
