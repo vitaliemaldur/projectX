@@ -60,6 +60,10 @@ module.exports = {
       type: 'array',
     },
 
+    final_scores: {
+      type: 'array',
+    },
+
     moves: {
       type: 'array',
     },

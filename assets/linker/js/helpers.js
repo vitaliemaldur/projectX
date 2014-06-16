@@ -22,7 +22,9 @@ function displayCombinations(game_ins) {
     $('#collapseCombinations').collapse('hide');
   });
 
-  $("#continationsContainer").empty();
+  if(game_ins.combinations.length != 0)
+    $("#continationsContainer").empty();
+
   for(var i = 0; i < game_ins.users_ids.length; i++) {
     var used = false;
     for(var j = 0; j < game_ins.combinations.length; j++) {
