@@ -423,8 +423,13 @@ module.exports = {
             game_ins.scores[id] = 0;
           }
           //add do final scores
+          var max_score = -100;
           for(var i = 0; i < game_ins.scores.length; i++) {
             game_ins.final_scores[i] += game_ins.scores[i];
+            if(game_ins.final_scores[i] > max_score) {
+              max_id = i;
+              max_score = game_ins.final_scores[i];
+            }
             game_ins.scores[i] = 0;
           }
           sails.io.sockets.in("room" + game_ins.id_game).emit('score', game_ins.toJSON());
@@ -444,11 +449,15 @@ module.exports = {
               console.log("Salvare instanta nereusita");
             }
           });
-          console.log(game_ins);
-          sails.io.sockets.in('room' + game_ins.id_game).emit('begin', game_ins.toJSON());
-          var next = (game_ins.users_ids.indexOf(game_ins.dealer) + 1) % game_ins.users_ids.length;
-          sails.io.sockets.in('room' + game_ins.id_game)
-          .emit('round1', {gameInstance: game_ins.toJSON(), userid: game_ins.users_ids[next]});
+          //final validation
+          if(max_score > 51) {
+            sails.io.sockets.in('room' + game_ins.id_game).emit('winner', game_ins.users_ids[max_id]);
+          } else {
+            sails.io.sockets.in('room' + game_ins.id_game).emit('begin', game_ins.toJSON());
+            var next = (game_ins.users_ids.indexOf(game_ins.dealer) + 1) % game_ins.users_ids.length;
+            sails.io.sockets.in('room' + game_ins.id_game)
+            .emit('round1', {gameInstance: game_ins.toJSON(), userid: game_ins.users_ids[next]});
+          }
         }
       }
     });

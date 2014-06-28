@@ -1,3 +1,6 @@
+.label {
+  font-size: 90%;
+}
 
 #clubs, #diamonds, #hearts, #spades {
   width: 33.33%;
