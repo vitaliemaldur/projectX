@@ -1,3 +1,7 @@
+body {
+    background-image: url("/linker/images/background.jpeg");
+}
+
 .label {
   font-size: 90%;
 }
