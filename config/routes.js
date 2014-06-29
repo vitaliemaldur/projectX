@@ -41,6 +41,11 @@ module.exports.routes = {
     action: 'index'
   },
   
+  '/user/rules' : {
+    controller: 'UserController',
+    action: 'rules'
+  },
+  
   '/user/login' : {
     controller: 'UserController',
     action: 'login'
