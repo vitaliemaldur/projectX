@@ -41,6 +41,7 @@
      <script src="/linker/js/sails.io.js"></script>
      <script src="/linker/js/app.js"></script>
      <script src="/linker/js/jquery-1.11.1.min.js"></script>
+     <script src="/linker/js/Chart.min.js"></script>
      <script src="/linker/js/bootstrap.js"></script>
      <script src="/linker/js/bootstrap.min.js"></script>
      <script src="/linker/js/helpers.js"></script>
@@ -66,8 +67,7 @@
 					<% if(req.session.authenticated)  { %>
 						<ul class="nav navbar-nav">
 							<li><a href="/user/index"><b>Games</b></a></li>
-        			<li><a href="#"><b>My Profile</b></a></li>
-							<li><a href="#"><b>Statistics</b></a></li>
+        			<li><a href="/user/profile"><b>My Profile</b></a></li>
               <li><a href="/user/rules"><b>Rules</b></a></li>
 						</ul>
 						<a href="/user/logout" class="navbar-link navbar-right navbar-text">

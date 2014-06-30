@@ -92,6 +92,10 @@ module.exports = {
   
   rules: function(req, res) {
     res.view()
+  },
+  
+  profile: function(req, res) {
+    res.view()
   }
   
 };

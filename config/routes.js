@@ -46,6 +46,11 @@ module.exports.routes = {
     action: 'rules'
   },
   
+  '/user/profile' : {
+    controller: 'UserController',
+    action: 'profile'
+  },
+  
   '/user/login' : {
     controller: 'UserController',
     action: 'login'
